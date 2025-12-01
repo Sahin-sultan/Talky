@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talky</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@400..900&family=Crete+Round:ital@0;1&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Serif+Text:ital@0;1&family=Dancing+Script:wght@400..700&family=Edu+AU+VIC+WA+NT+Pre:wght@400..700&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Faculty+Glyphic&family=Handlee&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Lexend:wght@100..900&family=Lobster&family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&family=Merienda:wght@300..900&family=Oleo+Script:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Varela+Round&family=Yellowtail&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --sidebar-bg: rgba(20, 20, 40, 0.95);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --green-accent: #00f2fe; /* Neon Blue */
+            --primary-gradient: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            --user-msg-bg: rgba(79, 172, 254, 0.1);
+            --bot-msg-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #030014;
+            background-image: 
+                radial-gradient(circle at 50% 50%, transparent 50%, rgba(0,0,0,0.6) 100%),
+                radial-gradient(circle at 50% 0%, rgba(88, 28, 135, 0.4), transparent 50%),
+                radial-gradient(circle at 50% 40%, rgba(56, 189, 248, 0.1), transparent 50%),
+                linear-gradient(180deg, #0f0c29 0%, #030014 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 15px;
+            display: block; /* Always visible */
+            transition: transform 0.2s;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+            color: #00f2fe;
+        }
+
+        /* Sidebar Desktop Transition */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            transition: width 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .new-chat-btn {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .new-chat-btn:hover {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            box-shadow: var(--glow);
+            transform: translateY(-2px);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Main Chat Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .top-bar {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.2);
+            justify-content: space-between; /* Space out items */
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-icon-btn {
+            background: rgba(91, 124, 255, 0.1);
+            border: 1px solid rgba(91, 124, 255, 0.3);
+            color: #5b7cff;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .login-icon-btn:hover {
+            background: #5b7cff;
+            color: white;
+            box-shadow: 0 0 10px rgba(91, 124, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .model-name {
+            font-family: 'Lexend Deca', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        .version-badge {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            animation: smoothFlash 2s infinite ease-in-out;
+            -webkit-text-fill-color: #00ff88; /* Reset text fill for badge */
+        }
+
+        @keyframes smoothFlash {
+            0% { opacity: 0.6; box-shadow: 0 0 5px rgba(0, 255, 136, 0.2); }
+            50% { opacity: 1; box-shadow: 0 0 15px rgba(0, 255, 136, 0.6); }
+            100% { opacity: 0.6; box-shadow: 0 0 5px rgba(0, 255, 136, 0.2); }
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 120px; /* Space for input */
+            scroll-behavior: smooth;
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-area::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        .chat-area::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+
+        .message-row {
+            width: 100%;
+            padding: 10px 20px 35px 20px; /* Added bottom padding for copy button */
+            display: flex;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-row.bot {
+            justify-content: flex-start;
+        }
+        
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            position: relative;
+            padding: 15px 20px;
+            border-radius: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .message-row.bot .message-content {
+            background-color: var(--bot-msg-bg);
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .message-row.user .message-content {
+            background-color: var(--user-msg-bg);
+            border-bottom-right-radius: 4px;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+        }
+
+        .text-content {
+            font-family: 'Lexend', sans-serif;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* Copy Button */
+        .copy-btn {
+            position: absolute;
+            bottom: -30px;
+            right: 0;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: all 0.2s;
+            padding: 5px;
+        }
+
+        .message-row:hover .copy-btn {
+            opacity: 0.5;
+        }
+
+        .copy-btn:hover {
+            opacity: 1 !important;
+            color: #00f2fe;
+            transform: scale(1.1);
+        }
+
+        /* Input Area */
+        .input-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(3, 0, 20, 0), #030014 60%);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-box {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .input-box:focus-within {
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            padding-right: 10px;
+        }
+
+        .send-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            color: #00f2fe;
+            transform: scale(1.1);
+            text-shadow: 0 0 10px #00f2fe;
+        }
+
+        .typing-indicator {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-top: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-text {
+            text-align: center; 
+            color: #c5c5d2; 
+            font-size: 0.7rem; 
+            margin-top: 10px;
+        }
+
+        .footer-link {
+            color: #00f2fe;
+            text-decoration: none;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.1rem;
+            margin-left: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link:hover {
+            text-shadow: 0 0 10px #00f2fe;
+            color: #fff;
+        }
+        
+        /* Mobile Responsive & Optimization */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100%;
+                z-index: 1000;
+                background-color: #1a1b26;
+                box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+                width: 260px;
+                transition: transform 0.3s ease; /* Use transform for mobile */
+            }
+            
+            .sidebar.active {
+                transform: translateX(280px);
+            }
+
+            .sidebar.collapsed {
+                width: 260px; /* Reset collapsed state on mobile */
+                padding: 10px;
+            }
+
+            .menu-btn {
+                padding: 10px; /* Larger touch target */
+            }
+            
+            .message-content {
+                max-width: 88%;
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+            
+            .input-container {
+                position: fixed; /* Stick to bottom of viewport */
+                bottom: 0;
+                left: 0;
+                padding: 10px;
+                background: #030014; /* Solid bg to cover content behind */
+                z-index: 100;
+            }
+            
+            .chat-area {
+                padding-bottom: 150px; /* Ensure last message clears input */
+            }
+
+            .model-name {
+                font-size: 1.2rem;
+            }
+
+            .input-box {
+                padding: 8px 12px;
+            }
+
+            /* Prevent iOS zoom on focus */
+            input[type="text"] {
+                font-size: 16px !important; 
+            }
+
+            /* Performance optimization */
+            .sidebar, .input-box {
+                backdrop-filter: none;
+            }
+        }
+
+        /* Login Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 0, 20, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            background: rgba(20, 20, 40, 0.9);
+            border: 1px solid rgba(91, 124, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-overlay.active .login-card {
+            transform: scale(1);
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            color: white;
+        }
+
+        .logo-area { text-align: center; margin-bottom: 20px; }
+        .logo-icon { font-size: 2rem; color: var(--neon-blue); margin-bottom: 10px; }
+        .login-card h1 { font-family: 'Lexend', sans-serif; font-size: 1.5rem; margin-bottom: 5px; color: white; }
+        .subtitle { color: var(--text-secondary); font-size: 0.85rem; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 5px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.9rem; }
+        .input-wrapper input { 
+            width: 100%; padding: 10px 10px 10px 35px; 
+            background: rgba(11, 18, 37, 0.6); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 8px; color: white; outline: none; transition: all 0.3s;
+        }
+        .input-wrapper input:focus { border-color: var(--neon-blue); background: rgba(11, 18, 37, 0.9); }
+        
+        .login-btn {
+            width: 100%; padding: 12px; 
+            background: linear-gradient(90deg, #ff416c, #ff4b2b); /* Sunset Pink/Orange */
+            background-size: 200% auto;
+            border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;
+            margin-top: 10px; transition: all 0.3s ease;
+        }
+        .login-btn:hover { 
+            background-position: right center;
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4); 
+        }
+
+        .signup-btn {
+            width: 100%; padding: 12px; 
+            background: linear-gradient(90deg, #ff416c, #ff4b2b); /* Sunset Pink/Orange */
+            background-size: 200% auto;
+            border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;
+            margin-top: 10px; transition: all 0.3s ease;
+        }
+        .signup-btn:hover { 
+            background-position: right center;
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4); 
+        }
+
+        .divider { display: flex; align-items: center; margin: 20px 0; color: var(--text-secondary); font-size: 0.8rem; }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+        .divider span { padding: 0 10px; }
+
+        .social-login { display: flex; gap: 10px; }
+        .social-btn {
+            flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .social-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .mobile-menu-btn {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar collapsed" id="sidebar">
+        <div class="new-chat-btn" onclick="location.reload()">
+            <i class="fas fa-plus"></i>
+            New chat
+        </div>
+        <div class="history-list">
+            <div class="history-item"><i class="far fa-comment-alt"></i> Greeting exchange</div>
+            <div class="history-item"><i class="far fa-comment-alt"></i> Code help</div>
+            <div class="history-item"><i class="far fa-comment-alt"></i> Project ideas</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="top-left">
+                <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+                <div class="model-name">
+                    Talky <span class="version-badge">0.1</span>
+                </div>
+            </div>
+            <button class="login-icon-btn" id="loginBtn" title="Login">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+
+        <div class="chat-area" id="chatHistory">
+            <!-- Messages will appear here -->
+            <div class="message-row bot">
+                <div class="message-content">
+                    <div class="text-content">Hello! I'm Talky 0.1. How can I help you today?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div style="width: 100%; max-width: 800px;">
+                <div class="typing-indicator" id="typingIndicator">Talky is thinking...</div>
+                <div class="input-box">
+                    <input type="text" id="userInput" placeholder="Send a message..." autocomplete="off">
+                    <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="footer-text">
+                    &copy; 2025 &bull; AI Chatbot Engine &bull; Crafted by <a href="https://sahinsultan.vercel.app/" target="_blank" class="footer-link">Sahin sultan</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-card">
+            <button class="close-modal-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                <h1>Sign In</h1>
+                <p class="subtitle">Welcome back to Talky</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); handleLogin();">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" placeholder="name@example.com" required>
+                        <i class="far fa-envelope"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" placeholder="Enter your password" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <a href="#" style="color: var(--neon-blue); font-size: 0.8rem; text-decoration: none;">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">Sign In</button>
+            </form>
+
+            <div class="divider"><span>or continue with</span></div>
+
+            <div class="social-login">
+                <button class="social-btn"><i class="fab fa-google"></i> Google</button>
+                <button class="social-btn"><i class="fab fa-github"></i> GitHub</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary);">
+                Don't have an account? <a href="#" id="signUpLink" style="color: var(--neon-blue); text-decoration: none;">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div class="modal-overlay" id="signUpModal">
+        <div class="login-card">
+            <button class="close-modal-btn" id="closeSignUpModalBtn"><i class="fas fa-times"></i></button>
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                <h1>Create Account</h1>
+                <p class="subtitle">Join Talky today</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); handleSignUp();">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" placeholder="John Doe" required>
+                        <i class="far fa-user"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" placeholder="name@example.com" required>
+                        <i class="far fa-envelope"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" placeholder="Create a password" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="signup-btn">Sign Up</button>
+            </form>
+
+            <div class="divider"><span>or continue with</span></div>
+
+            <div class="social-login">
+                <button class="social-btn"><i class="fab fa-google"></i> Google</button>
+                <button class="social-btn"><i class="fab fa-github"></i> GitHub</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary);">
+                Already have an account? <a href="#" id="signInLink" style="color: var(--neon-blue); text-decoration: none;">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
