@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talky - Quick Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .loading { color: #f59e0b; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .links a {
+            display: inline-block;
+            margin: 10px 10px 10px 0;
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Talky - Connection Test</h1>
+    
+    <div class="status-box">
+        <div class="status loading" id="status">Checking connection...</div>
+        <div id="message">Please wait while we test the backend connection...</div>
+    </div>
+
+    <div class="status-box">
+        <h3>Quick Actions</h3>
+        <button onclick="testConnection()">🔄 Test Connection</button>
+        <button onclick="window.location.href='index.html'">💬 Open Chat</button>
+        <button onclick="window.open('http://localhost:8000/docs', '_blank')">📚 API Docs</button>
+    </div>
+
+    <div class="status-box">
+        <h3>Backend Status</h3>
+        <div id="backendInfo">
+            <p>Backend URL: <code>http://localhost:8000</code></p>
+            <p>API Endpoint: <code>http://localhost:8000/api/chat</code></p>
+        </div>
+        <pre id="response"></pre>
+    </div>
+
+    <div class="status-box links">
+        <h3>Useful Links</h3>
+        <a href="index.html">Chat Interface</a>
+        <a href="http://localhost:8000/docs" target="_blank">API Documentation</a>
+        <a href="http://localhost:8000/health" target="_blank">Health Check</a>
+        <a href="../README_SETUP.md" target="_blank">Setup Guide</a>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const messageEl = document.getElementById('message');
+        const responseEl = document.getElementById('response');
+
+        async function testConnection() {
+            statusEl.className = 'status loading';
+            statusEl.textContent = 'Testing connection...';
+            messageEl.textContent = 'Please wait...';
+            responseEl.textContent = '';
+
+            try {
+                // Test health endpoint
+                const healthRes = await fetch('http://localhost:8000/health');
+                const healthData = await healthRes.json();
+                
+                responseEl.textContent = 'Health Check Response:\n' + JSON.stringify(healthData, null, 2);
+
+                // Test chat endpoint
+                const chatRes = await fetch('http://localhost:8000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: 'Hello!' }]
+                    })
+                });
+
+                const chatData = await chatRes.json();
+                
+                responseEl.textContent += '\n\nChat Test Response:\n' + JSON.stringify(chatData, null, 2);
+
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ Connection Successful!';
+                messageEl.innerHTML = 'Backend is running properly. You can now use the <a href="index.html">Chat Interface</a>.';
+
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Connection Failed';
+                messageEl.innerHTML = `
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>Troubleshooting:</strong><br>
+                    1. Make sure the backend server is running<br>
+                    2. Run in terminal: <code>cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000</code><br>
+                    3. Check if port 8000 is available<br>
+                    4. See <a href="../README_SETUP.md">Setup Guide</a> for more help
+                `;
+                responseEl.textContent = 'Error Details:\n' + error.toString();
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html>

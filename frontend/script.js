@@ -68,16 +68,19 @@ async function sendMessage() {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 messages: messages
-            })
+            }),
+            mode: 'cors',
+            credentials: 'omit'
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Network response was not ok');
+            throw new Error(errorData.detail || `Server error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -91,7 +94,22 @@ async function sendMessage() {
 
     } catch (error) {
         console.error('Error:', error);
-        appendMessage(`Error: ${error.message || 'Could not connect to the server. Please ensure the backend is running on port 8000.'}`, false);
+        
+        // Remove the user message from history since request failed
+        messages.pop();
+        
+        let errorMessage = 'Failed to connect to the server. ';
+        
+        if (error.message.includes('fetch')) {
+            errorMessage += 'Please ensure:\n';
+            errorMessage += '1. The backend server is running (run: python backend/main.py)\n';
+            errorMessage += '2. The server is accessible at http://localhost:8000\n';
+            errorMessage += '3. CORS is properly configured';
+        } else {
+            errorMessage += error.message;
+        }
+        
+        appendMessage(errorMessage, false);
     } finally {
         userInput.disabled = false;
         sendBtn.disabled = false;
