@@ -1,8 +1,13 @@
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from models import ChatRequest, ChatResponse, GenerateRequest, GenerateResponse, Message
 from config import ModelConfig
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Chatbot API")
 
@@ -18,10 +23,21 @@ app.add_middleware(
 # Configure Gemini
 if ModelConfig.API_KEY and ModelConfig.API_KEY != ">>> INSERT_API_KEY_HERE <<<":
     genai.configure(api_key=ModelConfig.API_KEY)
+else:
+    logger.warning("API Key not configured. Chat endpoints will return mock responses.")
 
 @app.get("/")
 async def root():
-    return {"message": "AI Chatbot API is running"}
+    return {"message": "AI Chatbot API is running", "status": "ok"}
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint to verify API key configuration.
+    """
+    if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<" or not ModelConfig.API_KEY:
+        return {"status": "warning", "message": "API Key not configured"}
+    return {"status": "ok", "message": "System operational"}
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
@@ -29,8 +45,9 @@ async def chat_endpoint(request: ChatRequest):
     Handles chat completion with conversation history using Google Gemini.
     """
     try:
-        if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<":
+        if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<" or not ModelConfig.API_KEY:
              # Mock response if no key is provided
+            logger.info("Returning mock response due to missing API key.")
             return ChatResponse(
                 response="I am ready to help! Please configure your API key in the .env file to get real AI responses.",
                 model=ModelConfig.MODEL_NAME
@@ -46,17 +63,18 @@ async def chat_endpoint(request: ChatRequest):
         gemini_history = []
         last_user_message = ""
 
+        # Iterate through messages to separate history from the current prompt
         for i, msg in enumerate(request.messages):
             role = "user" if msg.role == "user" else "model"
             
-            # If it's the last message and it's from the user, save it for send_message
+            # If it's the last message and it's from the user, treat it as the new prompt
             if i == len(request.messages) - 1 and role == "user":
                 last_user_message = msg.content
             else:
                 gemini_history.append({"role": role, "parts": [msg.content]})
 
+        # Fallback: If the last message wasn't a user message (unexpected), try to pop from history
         if not last_user_message:
-             # If the last message wasn't from the user (shouldn't happen in normal chat flow)
              if gemini_history and gemini_history[-1]["role"] == "user":
                  last = gemini_history.pop()
                  last_user_message = last["parts"][0]
@@ -81,6 +99,7 @@ async def chat_endpoint(request: ChatRequest):
         )
 
     except Exception as e:
+        logger.error(f"Backend Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")
 
 @app.post("/api/generate", response_model=GenerateResponse)

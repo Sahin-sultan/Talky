@@ -76,7 +76,8 @@ async function sendMessage() {
         });
 
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || 'Network response was not ok');
         }
 
         const data = await response.json();
@@ -90,7 +91,7 @@ async function sendMessage() {
 
     } catch (error) {
         console.error('Error:', error);
-        appendMessage('Sorry, something went wrong. Please check the console or backend connection.', false);
+        appendMessage(`Error: ${error.message || 'Could not connect to the server. Please ensure the backend is running on port 8000.'}`, false);
     } finally {
         userInput.disabled = false;
         sendBtn.disabled = false;
@@ -132,12 +133,15 @@ if (menuBtn && sidebar) {
     });
 }
 
-// Login Modal Logic
-const loginBtn = document.getElementById('loginBtn');
+
+// Supabase integration will be added fresh with the new project tomorrow.
+
+// Modal Logic
 const loginModal = document.getElementById('loginModal');
+const loginBtn = document.getElementById('loginBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-if (loginBtn && loginModal) {
+if (loginModal && loginBtn && closeModalBtn) {
     loginBtn.addEventListener('click', () => {
         loginModal.classList.add('active');
     });
@@ -146,7 +150,6 @@ if (loginBtn && loginModal) {
         loginModal.classList.remove('active');
     });
 
-    // Close modal when clicking outside
     loginModal.addEventListener('click', (e) => {
         if (e.target === loginModal) {
             loginModal.classList.remove('active');
@@ -188,47 +191,14 @@ if (signUpModal && signUpLink && signInLink) {
     });
 }
 
+// Placeholder Handlers
 function handleLogin() {
-    // Simulate login
-    const loginModal = document.getElementById('loginModal');
-    const loginBtn = document.getElementById('loginBtn');
-    
-    loginModal.classList.remove('active');
-    
-    // Change icon to indicate logged in state
-    loginBtn.innerHTML = '<i class="fas fa-user-check"></i>';
-    loginBtn.style.background = '#5b7cff';
-    loginBtn.style.color = 'white';
-    loginBtn.title = 'Logged In';
-    
-    // Optional: Store state
-    localStorage.setItem('isLoggedIn', 'true');
+    alert("Supabase integration will be added fresh with the new project tomorrow.");
+    document.getElementById('loginModal').classList.remove('active');
 }
 
 function handleSignUp() {
-    // Simulate Sign Up
-    const signUpModal = document.getElementById('signUpModal');
-    const loginBtn = document.getElementById('loginBtn');
-    
-    signUpModal.classList.remove('active');
-    
-    // Change icon to indicate logged in state
-    loginBtn.innerHTML = '<i class="fas fa-user-check"></i>';
-    loginBtn.style.background = '#5b7cff';
-    loginBtn.style.color = 'white';
-    loginBtn.title = 'Logged In';
-    
-    // Optional: Store state
-    localStorage.setItem('isLoggedIn', 'true');
+    alert("Supabase integration will be added fresh with the new project tomorrow.");
+    document.getElementById('signUpModal').classList.remove('active');
 }
 
-// Check login state on load
-if (localStorage.getItem('isLoggedIn') === 'true') {
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) {
-        loginBtn.innerHTML = '<i class="fas fa-user-check"></i>';
-        loginBtn.style.background = '#5b7cff';
-        loginBtn.style.color = 'white';
-        loginBtn.title = 'Logged In';
-    }
-}
