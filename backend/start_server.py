@@ -12,15 +12,15 @@ if __name__ == "__main__":
     print("=" * 50)
     print("Starting Talky Backend Server")
     print("=" * 50)
-    print("Server will be available at: http://localhost:8000")
-    print("API Docs available at: http://localhost:8000/docs")
+    print("Server will be available at: http://localhost:8080")
+    print("API Docs available at: http://localhost:8080/docs")
     print("Press CTRL+C to stop the server")
     print("=" * 50)
     
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8080,
         reload=True,
         log_level="info"
     )

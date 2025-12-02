@@ -6,9 +6,20 @@ const typingIndicator = document.getElementById('typingIndicator');
 // Store conversation history
 let messages = [];
 
-// API Endpoint - automatically detect or use localhost
-const API_URL = 'http://localhost:8000/api/chat';
-const HEALTH_URL = 'http://localhost:8000/health';
+// VERSION CHECK - Port 8080
+console.log('🔧 Script loaded - using PORT 8080');
+console.log('🕒 Script version:', new Date().toISOString());
+
+// API Endpoint - detect environment (Vercel or localhost)
+const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8080' 
+    : '';  // Empty string uses same origin on Vercel
+
+const API_URL = `${API_BASE}/api/chat`;
+const HEALTH_URL = `${API_BASE}/api/health`;
+
+console.log('📡 API_URL:', API_URL);
+console.log('❤️ HEALTH_URL:', HEALTH_URL);
 
 // Connection status
 let isServerConnected = false;
@@ -114,7 +125,7 @@ async function sendMessage() {
 
     // Check connection before sending
     if (!isServerConnected) {
-        appendMessage('⚠️ Cannot connect to server. Please start the backend:\n\n• Double-click START_BACKEND.bat\n• Or run: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000', false);
+        appendMessage('⚠️ Cannot connect to server. Please start the backend:\n\n• Double-click START_BACKEND_8080.bat\n• Or run: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8080', false);
         return;
     }
 
@@ -173,8 +184,8 @@ async function sendMessage() {
         
         if (error.message.includes('fetch')) {
             errorMessage += 'Please ensure:\n';
-            errorMessage += '1. The backend server is running (run: python backend/main.py)\n';
-            errorMessage += '2. The server is accessible at http://localhost:8000\n';
+            errorMessage += '1. The backend server is running (run: START_BACKEND_8080.bat)\n';
+            errorMessage += '2. The server is accessible at http://localhost:8080\n';
             errorMessage += '3. CORS is properly configured';
         } else {
             errorMessage += error.message;

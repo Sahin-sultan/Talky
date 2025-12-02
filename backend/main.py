@@ -21,8 +21,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5500",
         "http://127.0.0.1:5501",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
         "*"  # Allow all origins for development
     ],
     allow_credentials=True,
@@ -44,6 +44,15 @@ async def root():
 async def health_check():
     """
     Health check endpoint to verify API key configuration.
+    """
+    if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<" or not ModelConfig.API_KEY:
+        return {"status": "warning", "message": "API Key not configured"}
+    return {"status": "ok", "message": "System operational"}
+
+@app.get("/api/health")
+async def api_health_check():
+    """
+    Health check endpoint for frontend (matches /api/health path).
     """
     if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<" or not ModelConfig.API_KEY:
         return {"status": "warning", "message": "API Key not configured"}
