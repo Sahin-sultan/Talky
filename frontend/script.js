@@ -144,7 +144,14 @@ async function sendMessage() {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `Server error: ${response.status} ${response.statusText}`);
+            let errorMsg = errorData.detail || `Server error: ${response.status} ${response.statusText}`;
+            
+            // Make API key errors more prominent
+            if (errorMsg.includes('API Key Error') || errorMsg.includes('API key')) {
+                errorMsg = '🔑 ' + errorMsg;
+            }
+            
+            throw new Error(errorMsg);
         }
 
         const data = await response.json();

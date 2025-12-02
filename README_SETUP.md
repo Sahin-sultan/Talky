@@ -47,13 +47,22 @@ pip install -r requirements.txt
 
 ### Configure API Key (Optional)
 
-Create a `.env` file in the `backend` folder:
+Create or edit `.env` file in the `backend` folder:
 
 ```
 API_KEY=your_google_gemini_api_key_here
 ```
 
-**Note:** The chatbot works without an API key but returns mock responses. For real AI responses, get a Google Gemini API key from: https://makersuite.google.com/app/apikey
+**Get your API key:**
+1. Go to: https://makersuite.google.com/app/apikey
+2. Sign in with Google account
+3. Click "Create API Key"
+4. Copy the key (starts with `AIzaSy...`)
+5. Paste it in `backend/.env`
+
+**Note:** The chatbot works without an API key but returns mock responses. For real AI responses, you need a valid Google Gemini API key.
+
+📖 **Detailed guide:** See `GET_API_KEY.md`
 
 ---
 

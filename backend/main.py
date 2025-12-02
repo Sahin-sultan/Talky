@@ -110,7 +110,26 @@ async def chat_endpoint(request: ChatRequest):
 
     except Exception as e:
         logger.error(f"Backend Error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")
+        error_msg = str(e)
+        
+        # Check for common API key errors
+        if "API_KEY_INVALID" in error_msg or "API key expired" in error_msg:
+            raise HTTPException(
+                status_code=400,
+                detail="API Key Error: Your API key is invalid or expired. Please get a new API key from https://makersuite.google.com/app/apikey and update it in backend/.env file"
+            )
+        elif "API key not valid" in error_msg:
+            raise HTTPException(
+                status_code=400,
+                detail="API Key Error: Invalid API key format. Please check your API key in backend/.env file"
+            )
+        elif "quota" in error_msg.lower():
+            raise HTTPException(
+                status_code=429,
+                detail="API Quota Exceeded: You've reached your API usage limit. Please wait or upgrade your plan."
+            )
+        else:
+            raise HTTPException(status_code=500, detail=f"AI Error: {error_msg}")
 
 @app.post("/api/generate", response_model=GenerateResponse)
 async def generate_endpoint(request: GenerateRequest):
