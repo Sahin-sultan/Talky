@@ -10,8 +10,8 @@ let messages = [];
 console.log('🔧 Script loaded - using PORT 8080');
 console.log('🕒 Script version:', new Date().toISOString());
 
-// API Endpoint - detect environment (Vercel or localhost)
-const API_BASE = window.location.hostname === 'localhost' 
+// API Endpoint - Always use port 8080 for backend
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:8080' 
     : '';  // Empty string uses same origin on Vercel
 
@@ -20,30 +20,49 @@ const HEALTH_URL = `${API_BASE}/api/health`;
 
 console.log('📡 API_URL:', API_URL);
 console.log('❤️ HEALTH_URL:', HEALTH_URL);
+console.log('🌐 Current page:', window.location.href);
 
 // Connection status
 let isServerConnected = false;
+
+// Retry connection every 5 seconds if disconnected
+setInterval(() => {
+    if (!isServerConnected) {
+        checkServerConnection();
+    }
+}, 5000);
 
 // Check server connection on load
 window.addEventListener('load', checkServerConnection);
 
 // Check server connection
 async function checkServerConnection() {
+    console.log('🔍 Checking server connection to:', HEALTH_URL);
     try {
         const response = await fetch(HEALTH_URL, {
             method: 'GET',
             mode: 'cors',
-            cache: 'no-cache'
+            cache: 'no-cache',
+            headers: {
+                'Accept': 'application/json'
+            }
         });
         
+        console.log('📡 Response status:', response.status);
+        
         if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Server connected:', data);
             isServerConnected = true;
             updateConnectionStatus(true);
         } else {
+            console.warn('⚠️ Server responded with error:', response.status);
             isServerConnected = false;
             updateConnectionStatus(false);
         }
     } catch (error) {
+        console.error('❌ Connection failed:', error.message);
+        console.error('🔧 Make sure backend is running: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8080');
         isServerConnected = false;
         updateConnectionStatus(false);
     }

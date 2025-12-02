@@ -1,7 +1,7 @@
 import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import google.generativeai as genai
+from groq import Groq
 from models import ChatRequest, ChatResponse, GenerateRequest, GenerateResponse, Message
 from config import ModelConfig
 
@@ -30,10 +30,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure Gemini
+# Configure Groq client
 if ModelConfig.API_KEY and ModelConfig.API_KEY != ">>> INSERT_API_KEY_HERE <<<":
-    genai.configure(api_key=ModelConfig.API_KEY)
+    groq_client = Groq(api_key=ModelConfig.API_KEY)
 else:
+    groq_client = None
     logger.warning("API Key not configured. Chat endpoints will return mock responses.")
 
 @app.get("/")
@@ -61,59 +62,37 @@ async def api_health_check():
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    Handles chat completion with conversation history using Google Gemini.
+    Handles chat completion with conversation history using Groq API.
     """
     try:
-        if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<" or not ModelConfig.API_KEY:
+        if ModelConfig.API_KEY == ">>> INSERT_API_KEY_HERE <<<" or not ModelConfig.API_KEY or not groq_client:
              # Mock response if no key is provided
             logger.info("Returning mock response due to missing API key.")
             return ChatResponse(
-                response="I am ready to help! Please configure your API key in the .env file to get real AI responses.",
+                response="I am ready to help! Please configure your Groq API key in the .env file to get real AI responses.",
                 model=ModelConfig.MODEL_NAME
             )
 
-        # Prepare the model
-        model = genai.GenerativeModel(
-            model_name=request.model or ModelConfig.MODEL_NAME,
-            system_instruction=ModelConfig.SYSTEM_PROMPT
-        )
-
-        # Convert OpenAI-style messages to Gemini history format
-        gemini_history = []
-        last_user_message = ""
-
-        # Iterate through messages to separate history from the current prompt
-        for i, msg in enumerate(request.messages):
-            role = "user" if msg.role == "user" else "model"
-            
-            # If it's the last message and it's from the user, treat it as the new prompt
-            if i == len(request.messages) - 1 and role == "user":
-                last_user_message = msg.content
-            else:
-                gemini_history.append({"role": role, "parts": [msg.content]})
-
-        # Fallback: If the last message wasn't a user message (unexpected), try to pop from history
-        if not last_user_message:
-             if gemini_history and gemini_history[-1]["role"] == "user":
-                 last = gemini_history.pop()
-                 last_user_message = last["parts"][0]
-             else:
-                 raise HTTPException(status_code=400, detail="Conversation must end with a user message.")
-
-        # Start chat session with history
-        chat = model.start_chat(history=gemini_history)
+        # Prepare messages with system prompt
+        messages = [{"role": "system", "content": ModelConfig.SYSTEM_PROMPT}]
         
-        # Generate response
-        response = await chat.send_message_async(
-            last_user_message,
-            generation_config=genai.types.GenerationConfig(
-                temperature=ModelConfig.TEMPERATURE,
-                max_output_tokens=ModelConfig.MAX_TOKENS
-            )
+        # Add conversation history
+        for msg in request.messages:
+            messages.append({
+                "role": msg.role,
+                "content": msg.content
+            })
+        
+        # Generate response using Groq
+        chat_completion = groq_client.chat.completions.create(
+            messages=messages,
+            model=request.model or ModelConfig.MODEL_NAME,
+            temperature=ModelConfig.TEMPERATURE,
+            max_tokens=ModelConfig.MAX_TOKENS
         )
         
         return ChatResponse(
-            response=response.text,
+            response=chat_completion.choices[0].message.content,
             model=ModelConfig.MODEL_NAME
         )
 
@@ -122,17 +101,12 @@ async def chat_endpoint(request: ChatRequest):
         error_msg = str(e)
         
         # Check for common API key errors
-        if "API_KEY_INVALID" in error_msg or "API key expired" in error_msg:
+        if "invalid_api_key" in error_msg.lower() or "unauthorized" in error_msg.lower():
             raise HTTPException(
                 status_code=400,
-                detail="API Key Error: Your API key is invalid or expired. Please get a new API key from https://makersuite.google.com/app/apikey and update it in backend/.env file"
+                detail="API Key Error: Your Groq API key is invalid. Please get a new API key from https://console.groq.com/keys and update it in backend/.env file"
             )
-        elif "API key not valid" in error_msg:
-            raise HTTPException(
-                status_code=400,
-                detail="API Key Error: Invalid API key format. Please check your API key in backend/.env file"
-            )
-        elif "quota" in error_msg.lower():
+        elif "rate_limit" in error_msg.lower() or "quota" in error_msg.lower():
             raise HTTPException(
                 status_code=429,
                 detail="API Quota Exceeded: You've reached your API usage limit. Please wait or upgrade your plan."

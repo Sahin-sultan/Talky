@@ -70,14 +70,14 @@
         <h3>Quick Actions</h3>
         <button onclick="testConnection()">🔄 Test Connection</button>
         <button onclick="window.location.href='index.html'">💬 Open Chat</button>
-        <button onclick="window.open('http://localhost:8000/docs', '_blank')">📚 API Docs</button>
+        <button onclick="window.open('http://localhost:8080/docs', '_blank')">📚 API Docs</button>
     </div>
 
     <div class="status-box">
         <h3>Backend Status</h3>
         <div id="backendInfo">
-            <p>Backend URL: <code>http://localhost:8000</code></p>
-            <p>API Endpoint: <code>http://localhost:8000/api/chat</code></p>
+            <p>Backend URL: <code>http://localhost:8080</code></p>
+            <p>API Endpoint: <code>http://localhost:8080/api/chat</code></p>
         </div>
         <pre id="response"></pre>
     </div>
@@ -85,8 +85,8 @@
     <div class="status-box links">
         <h3>Useful Links</h3>
         <a href="index.html">Chat Interface</a>
-        <a href="http://localhost:8000/docs" target="_blank">API Documentation</a>
-        <a href="http://localhost:8000/health" target="_blank">Health Check</a>
+        <a href="http://localhost:8080/docs" target="_blank">API Documentation</a>
+        <a href="http://localhost:8080/health" target="_blank">Health Check</a>
         <a href="../README_SETUP.md" target="_blank">Setup Guide</a>
     </div>
 
@@ -103,13 +103,13 @@
 
             try {
                 // Test health endpoint
-                const healthRes = await fetch('http://localhost:8000/health');
+                const healthRes = await fetch('http://localhost:8080/health');
                 const healthData = await healthRes.json();
                 
                 responseEl.textContent = 'Health Check Response:\n' + JSON.stringify(healthData, null, 2);
 
                 // Test chat endpoint
-                const chatRes = await fetch('http://localhost:8000/api/chat', {
+                const chatRes = await fetch('http://localhost:8080/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
