@@ -1,8 +1,11 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-import google.generativeai as genai
-from urllib.parse import parse_qs
+
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -18,6 +21,10 @@ class handler(BaseHTTPRequestHandler):
             api_key = os.environ.get('GEMINI_API_KEY')
             if not api_key:
                 self.send_error(500, 'API key not configured')
+                return
+            
+            if genai is None:
+                self.send_error(500, 'Google Generative AI not installed')
                 return
             
             # Configure Gemini
