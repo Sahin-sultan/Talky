@@ -6,8 +6,66 @@ const typingIndicator = document.getElementById('typingIndicator');
 // Store conversation history
 let messages = [];
 
-// API Endpoint (adjust if backend runs on different port)
+// API Endpoint - automatically detect or use localhost
 const API_URL = 'http://localhost:8000/api/chat';
+const HEALTH_URL = 'http://localhost:8000/health';
+
+// Connection status
+let isServerConnected = false;
+
+// Check server connection on load
+window.addEventListener('load', checkServerConnection);
+
+// Check server connection
+async function checkServerConnection() {
+    try {
+        const response = await fetch(HEALTH_URL, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+            isServerConnected = true;
+            updateConnectionStatus(true);
+        } else {
+            isServerConnected = false;
+            updateConnectionStatus(false);
+        }
+    } catch (error) {
+        isServerConnected = false;
+        updateConnectionStatus(false);
+    }
+}
+
+function updateConnectionStatus(connected) {
+    const modelName = document.querySelector('.model-name');
+    if (!modelName) return;
+    
+    // Remove any existing status indicator
+    const existingIndicator = modelName.querySelector('.connection-status');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+    
+    // Add new status indicator
+    const statusIndicator = document.createElement('span');
+    statusIndicator.className = 'connection-status';
+    statusIndicator.style.cssText = `
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-left: 8px;
+        background: ${connected ? '#22c55e' : '#ef4444'};
+        box-shadow: 0 0 8px ${connected ? '#22c55e' : '#ef4444'};
+    `;
+    statusIndicator.title = connected ? 'Server connected' : 'Server disconnected';
+    modelName.appendChild(statusIndicator);
+    
+    // Only show warning if user tries to send a message without connection
+    // Don't show warning automatically on page load
+}
 
 function appendMessage(content, isUser) {
     const rowDiv = document.createElement('div');
@@ -53,6 +111,12 @@ function appendMessage(content, isUser) {
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
+
+    // Check connection before sending
+    if (!isServerConnected) {
+        appendMessage('⚠️ Cannot connect to server. Please start the backend:\n\n• Double-click START_BACKEND.bat\n• Or run: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000', false);
+        return;
+    }
 
     // Add user message to UI
     appendMessage(text, true);
