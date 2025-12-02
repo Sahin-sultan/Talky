@@ -1,8 +1,4 @@
 {
-  "buildCommand": "pip install -r requirements.txt",
-  "devCommand": "python -m uvicorn main:app --host 0.0.0.0 --port 8000",
-  "installCommand": "pip install -r requirements.txt",
-  "framework": null,
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -31,10 +27,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python3.9"
-    }
-  }
+  ]
 }
