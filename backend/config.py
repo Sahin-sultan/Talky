@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class ModelConfig:
-    API_KEY = os.getenv("API_KEY", ">>> INSERT_API_KEY_HERE <<<")
+    API_KEY = os.getenv("GROQ_API_KEY", ">>> INSERT_API_KEY_HERE <<<")
     # Groq model options: llama-3.3-70b-versatile, llama-3.1-70b-versatile, mixtral-8x7b-32768, gemma2-9b-it
     MODEL_NAME = "llama-3.3-70b-versatile" 
     TEMPERATURE = 0.7
