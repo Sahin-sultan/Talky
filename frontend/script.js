@@ -25,6 +25,97 @@ console.log('🌐 Current page:', window.location.href);
 // Connection status
 let isServerConnected = false;
 
+// Check user login status and update UI
+async function checkUserLoginStatus() {
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session && session.user) {
+            // User is logged in
+            const user = session.user;
+            const profile = await getUserProfile(user.id);
+            
+            // Hide login button, show user profile
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userProfile').style.display = 'block';
+            
+            // Update user avatar and dropdown
+            const userName = profile?.full_name || user.email.split('@')[0];
+            const firstLetter = userName.charAt(0).toUpperCase();
+            
+            document.getElementById('userAvatar').textContent = firstLetter;
+            document.getElementById('dropdownAvatar').textContent = firstLetter;
+            document.getElementById('dropdownName').textContent = profile?.full_name || userName;
+            document.getElementById('dropdownEmail').textContent = user.email;
+            
+            // Update welcome message with user's name
+            updateWelcomeMessage(profile?.full_name || userName);
+        } else {
+            // User is not logged in
+            document.getElementById('loginBtn').style.display = 'flex';
+            document.getElementById('userProfile').style.display = 'none';
+            
+            // Default welcome message
+            updateWelcomeMessage(null);
+        }
+    } catch (error) {
+        console.error('Error checking login status:', error);
+        // Show login button on error
+        document.getElementById('loginBtn').style.display = 'flex';
+        document.getElementById('userProfile').style.display = 'none';
+        updateWelcomeMessage(null);
+    }
+}
+
+// Update welcome message with user's name
+function updateWelcomeMessage(userName) {
+    const welcomeMsg = document.getElementById('welcomeMessage');
+    if (welcomeMsg) {
+        const textContent = welcomeMsg.querySelector('.text-content');
+        if (userName) {
+            textContent.innerHTML = `Hello <strong>${userName}</strong>! 👋 Welcome back to Talky 0.1. How can I help you today?`;
+        } else {
+            textContent.innerHTML = 'Hello! I\'m Talky 0.1. How can I help you today?';
+        }
+    }
+}
+
+// Toggle profile dropdown menu
+function toggleProfileMenu() {
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.classList.toggle('active');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const userProfile = document.getElementById('userProfile');
+    const dropdown = document.getElementById('profileDropdown');
+    
+    if (userProfile && !userProfile.contains(event.target)) {
+        dropdown.classList.remove('active');
+    }
+});
+
+// Handle logout
+async function handleLogout() {
+    try {
+        await signOut();
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Force reload even if there's an error
+        window.location.reload();
+    }
+}
+
+// Make functions globally available
+window.toggleProfileMenu = toggleProfileMenu;
+window.handleLogout = handleLogout;
+
+// Check login status on page load
+if (typeof supabaseClient !== 'undefined') {
+    checkUserLoginStatus();
+}
+
 // Retry connection every 5 seconds if disconnected
 setInterval(() => {
     if (!isServerConnected) {
@@ -310,14 +401,4 @@ if (signUpModal && signUpLink && signInLink) {
     });
 }
 
-// Placeholder Handlers
-function handleLogin() {
-    alert("Supabase integration will be added fresh with the new project tomorrow.");
-    document.getElementById('loginModal').classList.remove('active');
-}
-
-function handleSignUp() {
-    alert("Supabase integration will be added fresh with the new project tomorrow.");
-    document.getElementById('signUpModal').classList.remove('active');
-}
-
+// Note: Login and SignUp handlers are now in formHandlers.js with Supabase integration
