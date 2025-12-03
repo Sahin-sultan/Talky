@@ -14,17 +14,7 @@ app = FastAPI(title="AI Chatbot API")
 # Enable CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5500",
-        "http://localhost:5501",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5500",
-        "http://127.0.0.1:5501",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "*"  # Allow all origins for development
-    ],
+    allow_origins=["*"],  # Configure specific origins in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -7,13 +7,16 @@ const typingIndicator = document.getElementById('typingIndicator');
 let messages = [];
 
 // VERSION CHECK - Port 8080
-console.log('🔧 Script loaded - using PORT 8080');
+console.log('🔧 Script loaded');
 console.log('🕒 Script version:', new Date().toISOString());
 
-// API Endpoint - Always use port 8080 for backend
+// API Endpoint Configuration
+// For production: Set your backend URL here
+const BACKEND_URL = 'http://localhost:8080'; // Change this to your production backend URL
+
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:8080' 
-    : '';  // Empty string uses same origin on Vercel
+    ? BACKEND_URL
+    : BACKEND_URL;  // Use BACKEND_URL for production
 
 const API_URL = `${API_BASE}/api/chat`;
 const HEALTH_URL = `${API_BASE}/api/health`;
@@ -48,8 +51,21 @@ async function checkUserLoginStatus() {
             document.getElementById('dropdownName').textContent = profile?.full_name || userName;
             document.getElementById('dropdownEmail').textContent = user.email;
             
-            // Update welcome message with user's name
-            updateWelcomeMessage(profile?.full_name || userName);
+            // Check if we should show welcome animation (after login)
+            const showAnimation = sessionStorage.getItem('showWelcomeAnimation') === 'true';
+            if (showAnimation) {
+                sessionStorage.removeItem('showWelcomeAnimation');
+                
+                // Trigger particle animation
+                if (typeof createWelcomeParticles === 'function') {
+                    setTimeout(() => {
+                        createWelcomeParticles();
+                    }, 300);
+                }
+            }
+            
+            // Update welcome message with user's name (with animation if just logged in)
+            updateWelcomeMessage(profile?.full_name || userName, showAnimation);
         } else {
             // User is not logged in
             document.getElementById('loginBtn').style.display = 'flex';
@@ -68,12 +84,51 @@ async function checkUserLoginStatus() {
 }
 
 // Update welcome message with user's name
-function updateWelcomeMessage(userName) {
+function updateWelcomeMessage(userName, showAnimation = false) {
     const welcomeMsg = document.getElementById('welcomeMessage');
     if (welcomeMsg) {
         const textContent = welcomeMsg.querySelector('.text-content');
+        
         if (userName) {
-            textContent.innerHTML = `Hello <strong>${userName}</strong>! 👋 Welcome back to Talky 0.1. How can I help you today?`;
+            // Add animation classes
+            if (showAnimation) {
+                welcomeMsg.classList.add('welcome-animation');
+                textContent.classList.add('welcome-shimmer');
+                
+                // Remove shimmer after animation completes
+                setTimeout(() => {
+                    textContent.classList.remove('welcome-shimmer');
+                }, 2000);
+                
+                // Remove animation class after it completes
+                setTimeout(() => {
+                    welcomeMsg.classList.remove('welcome-animation');
+                }, 800);
+            }
+            
+            // Create animated welcome message
+            const welcomeHTML = `
+                <span style="display: inline-block; animation: scaleIn 0.5s ease-out;">Hello</span>
+                <strong style="display: inline-block; animation: scaleIn 0.6s ease-out; color: #5b7cff; text-shadow: 0 0 10px rgba(91, 124, 255, 0.5);">${userName}</strong>!
+                <span style="display: inline-block; animation: scaleIn 0.7s ease-out;">👋</span>
+                <br>
+                <span style="display: inline-block; animation: slideInUp 0.8s ease-out;">Welcome back to</span>
+                <span style="display: inline-block; animation: scaleIn 0.9s ease-out; color: #5b7cff; font-weight: 600;">Talky 0.1</span>
+                <br>
+                <span style="display: inline-block; animation: fadeIn 1s ease-out;">How can I help you today?</span>
+            `;
+            
+            textContent.innerHTML = welcomeHTML;
+            
+            // Add pulse effect to the entire message
+            if (showAnimation) {
+                setTimeout(() => {
+                    welcomeMsg.classList.add('welcome-pulse');
+                    setTimeout(() => {
+                        welcomeMsg.classList.remove('welcome-pulse');
+                    }, 600);
+                }, 1000);
+            }
         } else {
             textContent.innerHTML = 'Hello! I\'m Talky 0.1. How can I help you today?';
         }
@@ -294,8 +349,8 @@ async function sendMessage() {
         
         if (error.message.includes('fetch')) {
             errorMessage += 'Please ensure:\n';
-            errorMessage += '1. The backend server is running (run: START_BACKEND_8080.bat)\n';
-            errorMessage += '2. The server is accessible at http://localhost:8080\n';
+            errorMessage += '1. The backend server is running\n';
+            errorMessage += `2. The server is accessible at ${BACKEND_URL}\n`;
             errorMessage += '3. CORS is properly configured';
         } else {
             errorMessage += error.message;

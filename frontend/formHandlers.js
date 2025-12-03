@@ -28,7 +28,10 @@ async function handleLoginSubmit() {
         if (result.success) {
             showSuccess(successDiv, 'Login successful!');
             
-            // Close modal and reload to show logged-in state
+            // Store flag to show welcome animation
+            sessionStorage.setItem('showWelcomeAnimation', 'true');
+            
+            // Close modal and reload to show logged-in state with animation
             setTimeout(() => {
                 document.getElementById('loginModal').classList.remove('active');
                 window.location.reload();
