@@ -457,3 +457,14 @@ if (signUpModal && signUpLink && signInLink) {
 }
 
 // Note: Login and SignUp handlers are now in formHandlers.js with Supabase integration
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Check user login status and show/hide login button
+    if (typeof checkUserLoginStatus === 'function') {
+        checkUserLoginStatus();
+    }
+    
+    // Check server connection
+    checkServerConnection();
+});
