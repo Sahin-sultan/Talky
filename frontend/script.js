@@ -12,11 +12,11 @@ console.log('🕒 Script version:', new Date().toISOString());
 
 // API Endpoint Configuration
 // For production: Set your backend URL here
-const BACKEND_URL = 'http://localhost:8080'; // Change this to your production backend URL
+const BACKEND_URL = 'https://talky-production-2636.up.railway.app'; // Railway backend URL
 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? BACKEND_URL
-    : BACKEND_URL;  // Use BACKEND_URL for production
+    ? 'http://localhost:8080'  // Local development
+    : BACKEND_URL;  // Production backend
 
 const API_URL = `${API_BASE}/api/chat`;
 const HEALTH_URL = `${API_BASE}/api/health`;
