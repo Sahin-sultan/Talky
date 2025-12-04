@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talky</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@400..700&family=Cinzel:wght@400..900&family=Crete+Round:ital@0;1&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Serif+Text:ital@0;1&family=Dancing+Script:wght@400..700&family=Edu+AU+VIC+WA+NT+Pre:wght@400..700&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Faculty+Glyphic&family=Handlee&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Lexend:wght@100..900&family=Lobster&family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&family=Merienda:wght@300..900&family=Oleo+Script:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+US+Trad+Guides&family=Space+Grotesk:wght@300..700&family=Varela+Round&family=Yellowtail&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Custom browser autocomplete dropdown styling */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: #ffffff;
+            transition: background-color 5000s ease-in-out 0s;
+            box-shadow: inset 0 0 20px 20px rgba(11, 18, 37, 0.6);
+        }
+
+        /* Style the autocomplete dropdown items */
+        input[type="text"]::-webkit-contacts-auto-fill-button,
+        input[type="email"]::-webkit-contacts-auto-fill-button,
+        input[type="tel"]::-webkit-contacts-auto-fill-button {
+            visibility: hidden;
+            display: none !important;
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+        }
+        
+        /* Custom scrollbar for dropdown */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(11, 18, 37, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(91, 124, 255, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(91, 124, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar collapsed" id="sidebar">
+        <div class="new-chat-btn" onclick="location.reload()">
+            <i class="fas fa-plus"></i>
+            New chat
+        </div>
+        <div class="history-list">
+            <div class="history-item"><i class="far fa-comment-alt"></i> Greeting exchange</div>
+            <div class="history-item"><i class="far fa-comment-alt"></i> Code help</div>
+            <div class="history-item"><i class="far fa-comment-alt"></i> Project ideas</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="top-left">
+                <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+                <div class="model-name">
+                    <img src="favicon.svg" alt="Talky Logo" class="logo-icon">
+                    Talky <span class="version-badge">0.1</span>
+                </div>
+            </div>
+            <div class="user-section" id="userSection">
+                <!-- Before Login -->
+                <button class="login-icon-btn" id="loginBtn" title="Login" style="display: none;">
+                    <i class="fas fa-user"></i>
+                </button>
+                
+                <!-- After Login -->
+                <div class="user-profile" id="userProfile" style="display: none;">
+                    <div class="user-avatar" id="userAvatar" onclick="toggleProfileMenu()">S</div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-avatar" id="dropdownAvatar">S</div>
+                            <div class="dropdown-info">
+                                <div class="dropdown-name" id="dropdownName">User Name</div>
+                                <div class="dropdown-email" id="dropdownEmail">user@email.com</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <button onclick="handleLogout()" class="dropdown-item logout-item">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-area" id="chatHistory">
+            <!-- Messages will appear here -->
+            <div class="message-row bot" id="welcomeMessage">
+                <div class="message-content">
+                    <div class="text-content">Hello! I'm Talky 0.1. How can I help you today?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div style="width: 100%; max-width: 800px;">
+                <div class="typing-indicator" id="typingIndicator">Talky is thinking...</div>
+                <div class="input-box">
+                    <input type="text" id="userInput" placeholder="Send a message..." autocomplete="off">
+                    <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="footer-text">
+                    &copy; 2025 &bull; AI Chatbot Engine &bull; Crafted by <a href="https://sahinsultan.vercel.app/" target="_blank" class="footer-link">Sahin sultan</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-card">
+            <button class="close-modal-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                <h1>Login</h1>
+                <p class="subtitle">Welcome back to Talky</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); handleLoginSubmit();" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="loginEmail" placeholder="name@example.com" required>
+                        <i class="far fa-envelope"></i>
+                        <i class="email-validator" id="loginEmailValidator"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <a href="#" style="color: var(--neon-blue); font-size: 0.8rem; text-decoration: none;">Forgot Password?</a>
+                </div>
+
+                <div id="loginError" class="error-message" style="display: none;"></div>
+                <div id="loginSuccess" class="success-message" style="display: none;"></div>
+
+                <button type="submit" class="login-btn" id="signInBtn">Login</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 25px; font-size: 0.85rem; color: var(--text-secondary);">
+                Don't have an account? <a href="#" id="signUpLink" style="color: var(--neon-blue); text-decoration: none;">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div class="modal-overlay" id="signUpModal">
+        <div class="login-card">
+            <button class="close-modal-btn" id="closeSignUpModalBtn"><i class="fas fa-times"></i></button>
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                <h1>Create Account</h1>
+                <p class="subtitle">Join Talky today</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); handleSignUpSubmit();" id="signUpForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="signUpFullName" placeholder="John Doe" required>
+                        <i class="far fa-user"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="signUpEmail" placeholder="name@example.com" required>
+                        <i class="far fa-envelope"></i>
+                        <i class="email-validator" id="signUpEmailValidator"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="signUpPassword" placeholder="Create a password" required minlength="6">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+
+                <div id="signUpError" class="error-message" style="display: none;"></div>
+                <div id="signUpSuccess" class="success-message" style="display: none;"></div>
+
+                <button type="submit" class="signup-btn" id="signUpBtn">Sign Up</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 25px; font-size: 0.85rem; color: var(--text-secondary);">
+                Already have an account? <a href="#" id="signInLink" style="color: var(--neon-blue); text-decoration: none;">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="auth.js"></script>
+    <script src="formHandlers.js"></script>
+    <script src="emailValidator.js"></script>
+    <script src="customAutocomplete.js"></script>
+    <script src="welcomeAnimation.js"></script>
+    <script src="script.js?v=8080"></script>
+</body>
+</html>
